@@ -3,6 +3,7 @@ import numpy as np
 import scipy.io.wavfile as wav
 import simpleaudio as sa
 import matplotlib.pyplot as plt
+import time
 from STTService import STTService
 from TTSService import TTSService
 from LLMService import LLMService
@@ -94,6 +95,7 @@ def main():
             while True:
                 print("\nMów teraz! (Naciśnij Ctrl+C, aby zatrzymać)")
                 audio = recognizer.listen(source)
+                start_time = time.time()
                 audio_data = np.frombuffer(audio.get_raw_data(), np.int16).flatten().astype(np.float32) / 32768.0
                 
                 tekst = stt.transcribe(audio_data)
@@ -110,7 +112,9 @@ def main():
                         if plik_audio:
                             print("[Wizualizacja] Generowanie raportu AI vs Człowiek do porownanie.png...")
                             compare_spectrograms(human_audio=audio_data, ai_audio_path=plik_audio)
-                            
+                            end_time = time.time()
+                            processing_time = end_time - start_time
+                            print(f"Czas przetwarzania: {processing_time:.2f} s\n")
                             play_audio(plik_audio)
                     
         except KeyboardInterrupt:

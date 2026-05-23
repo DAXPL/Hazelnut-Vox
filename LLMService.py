@@ -2,10 +2,10 @@ from ollama import Client
 import asyncio
 
 class LLMService:
-    def __init__(self, model):
+    def __init__(self, model, hostAddress="127.0.0.1"):
         print("Ładowanie modelu LLM ...")
         self.model = model
-        self.ollama_client = Client(host="127.0.0.1")
+        self.ollama_client = Client(host=hostAddress)
         self.ollama_client.generate(model=self.model, keep_alive="1h")
         print("Ok")
 
@@ -25,7 +25,7 @@ class LLMService:
                 "temperature": 0.9,
                 "top_p": 0.95,
                 "num_ctx": 2048,
-                "num_predict": 60, # Uwaga: 60 tokenów to bardzo krótka odpowiedź!
+                "num_predict": 250,
             }
         )
 
