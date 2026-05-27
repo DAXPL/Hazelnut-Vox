@@ -4,6 +4,7 @@ import scipy.io.wavfile as wav
 import simpleaudio as sa
 import matplotlib.pyplot as plt
 import time
+import asyncio
 from STTService import STTService
 from TTSService import TTSService
 from LLMService import LLMService
@@ -24,20 +25,18 @@ def load_prompt(filepath):
         except FileNotFoundError:
             print(f"Błąd: Nie znaleziono pliku {filepath}!")
 
-
-def main():
+async def main():
     systemPrompt = load_prompt("prompt.txt")
     stt = STTService(model_size="turbo")
     tts = TTSService()
-    llm = LLMService(model="llama3.2:1b")
+    llm = LLMService(model="gemma3:12b", hostAddress="daxpl-workstation")
+
+    await llm.initialize()
 
     recognizer = sr.Recognizer()
     recognizer.pause_threshold = 1.5 
-    recognizer.non_speaking_duration = 0.5 
+    recognizer.non_speaking_duration = 1.0 
     recognizer.dynamic_energy_threshold = True
-    recognizer.energy_threshold = 600
-
-    print("\n--- System gotowy do działania ---")
     
     with sr.Microphone(sample_rate=16000) as source:
         print("Dostosowywanie do szumu tła (proszę o ciszę)...")
@@ -54,7 +53,7 @@ def main():
                 
                 if tekst:
                     print(f"\n[STT] Rozpoznano: {tekst}")
-                    response = llm.think(tekst,systemPrompt)
+                    response = await llm.think(tekst, systemPrompt) 
                     if response:
                         print(f"\n[LLM] Odpowiedziano: {response}")
                         
@@ -72,4 +71,4 @@ def main():
             print("\nZakończono działanie systemu.")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
