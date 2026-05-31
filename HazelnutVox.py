@@ -28,8 +28,8 @@ def load_prompt(filepath):
 async def main():
     systemPrompt = load_prompt("prompt.txt")
     stt = STTService(model_size="turbo")
-    tts = TTSService()
-    llm = LLMService(model="gemma3:12b", hostAddress="100.106.60.55")
+    tts = TTSService(speaker_filename="VoiceJohny2.wav")
+    llm = LLMService(model="gemma3:12b", hostAddress="localhost")
 
     await llm.initialize()
 

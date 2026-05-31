@@ -3,7 +3,7 @@ import torch
 from TTS.api import TTS
 
 class TTSService:
-    def __init__(self, speaker_filename="VoiceJohny2.wav"):
+    def __init__(self, speaker_filename="Voice.wav"):
         print("Ładowanie modelu TTS ...")
         self.app_dir = os.path.dirname(os.path.abspath(__file__))
         self.local_models_path = os.path.join(self.app_dir, "models")
@@ -26,7 +26,7 @@ class TTSService:
         self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(self.device)
         print("Model gotowy.")
 
-    def generate_audio(self, text_content, output_path="file.wav"):
+    def generate_audio(self, text_content, output_path="file.wav", audioLanguage="pl"):
         if not text_content:
             return None
             
@@ -35,7 +35,7 @@ class TTSService:
             self.tts.tts_to_file(
                 text=text_content,
                 speaker_wav=self.speaker_wav,
-                language="pl",
+                language=audioLanguage,
                 file_path=output_path,
                 split_sentences=True,  # Idealne dla długich odpowiedzi z LLM
                 temperature=0.5,       
