@@ -3,7 +3,7 @@ import torch
 from TTS.api import TTS
 
 class TTSService:
-    def __init__(self):
+    def __init__(self, speaker_filename="VoiceJohny2.wav"):
         print("Ładowanie modelu TTS ...")
         self.app_dir = os.path.dirname(os.path.abspath(__file__))
         self.local_models_path = os.path.join(self.app_dir, "models")
@@ -17,7 +17,13 @@ class TTSService:
         print(f"Używane urządzenie: {self.device}")
         print("Ładowanie modelu ...")
         
-        self.tts = TTS(model_name="tts_models/pl/mai_female/vits", progress_bar=False).to(self.device)
+        self.speaker_wav = os.path.join(self.app_dir, speaker_filename)
+        if not os.path.exists(self.speaker_wav):
+            print(f"OSTRZEŻENIE: Nie znaleziono pliku referencyjnego głosu: {self.speaker_wav}!")
+                
+        print("Ładowanie wag modelu ...")
+        # Inicjalizacja modelu XTTS v2 z przeniesieniem na odpowiednie urządzenie
+        self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(self.device)
         print("Model gotowy.")
 
     def generate_audio(self, text_content, output_path="file.wav"):
@@ -26,7 +32,17 @@ class TTSService:
             
         try:
             print(f"Przetwarzanie: '{text_content}' - generowanie audio...")
-            self.tts.tts_to_file(text=text_content, file_path=output_path)
+            self.tts.tts_to_file(
+                text=text_content,
+                speaker_wav=self.speaker_wav,
+                language="pl",
+                file_path=output_path,
+                split_sentences=True,  # Idealne dla długich odpowiedzi z LLM
+                temperature=0.5,       
+                top_p=0.8,             
+                top_k=50,              
+                speed=0.9              
+            )
             return output_path
         except Exception as e:
             print(f"Błąd podczas generowania: {e}")
