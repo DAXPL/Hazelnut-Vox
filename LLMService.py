@@ -33,7 +33,7 @@ class LLMService:
             options={
                 "temperature": 0.7,
                 "top_p": 0.95,
-                "num_ctx": 4096, 
+                "num_ctx": 1024, 
                 "num_predict": 250,
             }
         )

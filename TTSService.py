@@ -26,7 +26,7 @@ class TTSService:
         self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(self.device)
         print("Model gotowy.")
 
-    def generate_audio(self, text_content, output_path="file.wav", audioLanguage="pl"):
+    def generate_audio(self, text_content, output_path="file.wav"):
         if not text_content:
             return None
             
@@ -35,13 +35,13 @@ class TTSService:
             self.tts.tts_to_file(
                 text=text_content,
                 speaker_wav=self.speaker_wav,
-                language=audioLanguage,
+                language="pl",
                 file_path=output_path,
                 split_sentences=True,  # Idealne dla długich odpowiedzi z LLM
                 temperature=0.5,       
                 top_p=0.8,             
                 top_k=50,              
-                speed=0.9              
+                speed=1.1              
             )
             return output_path
         except Exception as e:
