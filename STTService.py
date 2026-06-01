@@ -1,41 +1,43 @@
-import whisper
+from faster_whisper import WhisperModel
 import torch
-#https://github.com/openai/whisper
+import numpy as np
+
+# https://github.com/SYSTRAN/faster-whisper
 class STTService:
     def __init__(self, model_size="turbo"):
-        print("Ładowanie modelu STT (Whisper)...")
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.useFP16 = True if torch.cuda.is_available() else False
-        print('STT Device:', self.device)
-        
-        self.model = whisper.load_model(model_size, device=self.device)
+        print(f"Ładowanie modelu STT (faster-whisper: {model_size})...")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.compute_type = "int8_float16" if self.device == "cuda" else "float32"
+        print(f'STT Device: {self.device} (compute_type: {self.compute_type})')
+        self.model = WhisperModel(model_size, device=self.device, compute_type=self.compute_type)
+        print("Model STT gotowy.")
 
-    def transcribe(self, audio_data):
-        import numpy as np
-
-        # 1. audio_data jest już tablicą, upewniamy się tylko, że ma typ float32
-        # Whisper wymaga jednowymiarowej tablicy (mono) z częstotliwością próbkowania 16000 Hz
+    def transcribe(self, audio_data, transcribeLanguage="dynamic"):
         if isinstance(audio_data, np.ndarray):
             audio = audio_data.astype(np.float32)
         else:
             audio = audio_data
 
-        # 2. Przycięcie lub dopełnienie (padding) sygnału do 30 sekund
-        audio = whisper.pad_or_trim(audio)
+        target_language = None if transcribeLanguage == "dynamic" else transcribeLanguage
 
-        # 3. Tworzenie log-Mel spektrogramu i przeniesienie go na GPU/CPU
-        mel = whisper.log_mel_spectrogram(audio, n_mels=self.model.dims.n_mels).to(self.model.device)
+        try:
+            segments, info = self.model.transcribe(
+                audio, 
+                language=target_language,
+                beam_size=5,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=500)
+            )
 
-        # 4. Wykrywanie języka na podstawie spektrogramu
-        _, probs = self.model.detect_language(mel)
-        detected_lang = max(probs, key=probs.get)
-        print(f"Wykryty język: {detected_lang}")
+            if transcribeLanguage == "dynamic":
+                print(f"Wykryty język: {info.language} (prawdopodobieństwo: {info.language_probability:.2f})")
 
-        # 5. Dekodowanie audio
-        # Podajemy wykryty język i flagę fp16, którą zdefiniowałeś w __init__
-        options = whisper.DecodingOptions(language=detected_lang, fp16=self.useFP16)
-        result = whisper.decode(self.model, mel, options)
-        
-        # Zwróć uwagę: funkcja decode() zwraca obiekt DecodingResult.
-        # Odwołujemy się do tekstu przez atrybut .text, a nie klucz ["text"]
-        return result.text.strip()
+            tekst = ""
+            for segment in segments:
+                tekst += segment.text + " "
+
+            return tekst.strip()
+            
+        except Exception as e:
+            print(f"Błąd podczas transkrypcji STT: {e}")
+            return ""

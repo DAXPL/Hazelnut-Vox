@@ -31,9 +31,9 @@ class LLMService:
             messages=self.conversation_history,
             keep_alive="1h",
             options={
-                "temperature": 0.7,
+                "temperature": 0.8,
                 "top_p": 0.95,
-                "num_ctx": 4096, 
+                "num_ctx": 2048, 
                 "num_predict": 250,
             }
         )

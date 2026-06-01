@@ -9,7 +9,7 @@ The system actively listens to user input, processes the speech into text, gener
 The pipeline is built on modular Python services:
 * **STT (Speech-to-Text):** Powered by OpenAI's Whisper (using the `turbo` model) to process incoming audio streams into text. It handles audio padding/trimming and log-Mel spectrogram generation for language detection and decoding.
 * **LLM (Large Language Model):** Powered by Ollama running locally (default: `llama3.2:1b`). It includes a custom parser to strip `<think>` reasoning tags, ensuring clean textual output for the TTS module.
-* **TTS (Text-to-Speech):** Utilizes Coqui TTS with a Polish VITS model (`tts_models/pl/mai_female/vits`) to generate natural-sounding voice responses.
+* **TTS (Text-to-Speech):** Utilizes XTTS v2 to generate natural-sounding voice responses.
 
 ## Key Features
 * **Real-time Voice Interaction:** Automatically adjusts to ambient noise and listens dynamically using the `speech_recognition` library with custom energy thresholds.
